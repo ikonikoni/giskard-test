@@ -144,3 +144,65 @@ def calculate_days(routes, autonomy):
                 days = days + route.cost
                 current_autonomy = current_autonomy - route.cost
     return days
+
+import heapq
+
+# Helper for comparing
+class PriorityPlanetWrapper:
+    def __init__(self, priority, planet):
+        self.priority = priority
+        self.planet = planet
+    
+    def __lt__(self, other):
+        return self.priority < other.priority
+
+
+def find_shortest_path(planets, src_name, dst_name):
+    if src_name not in planets.keys() or dst_name not in planets.keys():
+        # Error
+        raise Exception("No such planet")
+    # Retrieve planets
+    src = planets[src_name]
+    dst = planets[dst_name]
+
+    current_queue = []  # Create a priority queue
+    heapq.heappush(current_queue, PriorityPlanetWrapper(0, src))
+
+    # TODO: Retrieve the shortest path
+    shortest_routes = [] # Chosen routes
+
+    found_dest = False
+
+    shortest_distances = { planet: \
+        (None if planet is not src else 0) for _, planet in planets.items() }
+    while len(current_queue) > 0:
+        # Retrieve the planet without index
+        current_planet = heapq.heappop(current_queue).planet
+
+        if current_planet == dst:
+            # We have reached the planet
+            found_dest = True
+            break
+
+        for current_route in current_planet.routes:
+            # Do not process the planets with known routes
+            #if current_route.dest in known_shortest_path_planets:
+            #    continue
+
+            current_reachable_planet = current_route.dest
+
+            is_infinite = (shortest_distances[current_reachable_planet] is None)
+            new_distance = shortest_distances[current_planet] + current_route.cost
+            if is_infinite or new_distance < shortest_distances[current_reachable_planet]:
+                # Update the current reachable shortest distance
+                shortest_distances[current_reachable_planet] = new_distance
+                heapq.heappush(current_queue,
+                    PriorityPlanetWrapper(new_distance, current_reachable_planet)
+                )
+
+    if not found_dest:
+        # No reachable path
+        return shortest_routes
+
+    print("Shortest:", shortest_distances[dst])
+    return shortest_routes
