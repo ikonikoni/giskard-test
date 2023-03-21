@@ -128,10 +128,29 @@ def calculate(falcon_status, empire_plan):
     print("Shortest path days:", shortest_path_days)
     if shortest_path_days > count_down:
         return 0, 0.0
+    # Although calculate_days can handle with the autonomy,
+    # fixup with stays (None) for further improvement
+    shortest_path = fixup_days(shortest_path, falcon_status[AUTONOMY_KEY])
 
     # TODO: Solve the minimum
 
     return error_code, odds
+
+def fixup_days(routes, autonomy):
+    current_autonomy = autonomy
+    new_routes = []
+    for route in routes:
+        if route is None:
+            current_autonomy = autonomy
+            new_routes.append(None)
+        else:
+            if route.cost > current_autonomy:
+                new_routes.append(None)
+                current_autonomy = autonomy - route.cost
+            else:
+                current_autonomy = current_autonomy - route.cost
+            new_routes.append(route)
+    return new_routes
 
 def calculate_days(routes, autonomy):
     """
