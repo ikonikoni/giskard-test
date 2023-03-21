@@ -13,6 +13,8 @@ BOUNTY_HUNTERS_KEY = "bounty_hunters"
 PLANET_KEY = "planet"
 DAY_KEY = "day"
 
+COEFFICIENT = 0.9
+
 def falcon_autocheck(falcon_status):
     """
         Check the key-values in falcon status:
@@ -132,12 +134,15 @@ def calculate(falcon_status, empire_plan):
     # fixup with stays (None) for further improvement
     shortest_path = fixup_days(shortest_path, falcon_status[AUTONOMY_KEY])
 
-    # TODO: Solve the minimum
-    solutions = [ shortest_path ]
-    if shortest_path_days == count_down:
-        # Maybe cannot improve anymore
-        return 0, calculate_odds(shortest_path, \
-            planets[falcon_status[DEPARTURE_KEY]], bounty_hunter_plan)
+    # Knowing that there is a solution, solve the minimum using brute-force
+    bf_odds = brute_force_traversal(planets,\
+        src_name=falcon_status[DEPARTURE_KEY],\
+        dst_name=falcon_status[ARRIVAL_KEY],\
+        autonomy=falcon_status[AUTONOMY_KEY],\
+        count_down=count_down,\
+        bounty_hunter_plan=bounty_hunter_plan\
+    )
+    odds = max(odds, bf_odds)
 
     return error_code, odds
 
@@ -252,6 +257,100 @@ def find_shortest_path(planets, src_name, dst_name):
         current_planet = previous_planet
     print("Shortest:", shortest_distances[dst])
     return shortest_routes
+
+class BruteForceTravelTreeNode:
+    def __init__(self, src, budget, odd, day):
+        """
+        Use to memorize the nodes in the BF travel tree
+        """
+        self._src = src
+        self._budget = budget
+        self._odd = odd
+        self._day = day
+        self.nodes = []
+
+    @property
+    def source(self):
+        return self._src
+    
+    @property
+    def budget(self):
+        return self._budget
+
+    @property
+    def odd(self):
+        return self._odd
+
+    @property
+    def day(self):
+        return self._day
+
+def brute_force_traversal_build_one_layer(tree_root, dst, autonomy, count_down, bounty_hunter_plan):
+    if tree_root is None:
+        return 0.0
+    if tree_root.source == dst:
+        # Finished
+        return tree_root.odd
+
+    base_odd = tree_root.odd
+    nodes = []
+    finished_odds = []
+    for route in tree_root.source.routes:
+        if tree_root.budget < route.cost:
+            # Oops, we cannot go there...
+            continue
+        if tree_root.day + route.cost > count_down:
+            # Death Earth has launched...
+            continue
+
+        odd = base_odd
+        if route.dest.name in bounty_hunter_plan and \
+            (tree_root.day + route.cost) in bounty_hunter_plan[route.dest.name]:
+            # Update if at the same day
+            odd = odd * COEFFICIENT
+
+        nodes.append(BruteForceTravelTreeNode(route.dest, \
+            tree_root.budget - route.cost, odd, tree_root.day + route.cost))
+
+    # Add a stay if possible
+    if tree_root.day < count_down:
+        odd = base_odd
+        if tree_root.source.name in bounty_hunter_plan and \
+            (tree_root.day + 1) in bounty_hunter_plan[tree_root.source.name]:
+            # Update if at the same day
+            odd = odd * COEFFICIENT
+        nodes.append(
+            BruteForceTravelTreeNode(tree_root.source, autonomy, odd, tree_root.day + 1)
+        )
+
+    tree_root.nodes = nodes
+    return max(finished_odds) if len(finished_odds) > 0 else 0.0
+
+def brute_force_traversal(planets, src_name, dst_name, autonomy, count_down, bounty_hunter_plan):
+    if src_name not in planets.keys() or dst_name not in planets.keys():
+        # Error
+        raise Exception("No such planet")
+    # Retrieve planets
+    src = planets[src_name]
+    dst = planets[dst_name]
+
+    tree_root = BruteForceTravelTreeNode(src, autonomy, 100, day=0)
+    max_odd = 0.0
+    finished = False
+    current_queue = [ tree_root ]
+    while len(current_queue) > 0:
+        current_node = current_queue.pop()
+        # Retrieve the max odd from the current layer
+        max_odd = max(max_odd,
+            brute_force_traversal_build_one_layer(
+                current_node, dst, autonomy, count_down, bounty_hunter_plan
+            )
+        )
+        # Append the nodes if there are further steps
+        for node in current_node.nodes:
+            current_queue.append(node)    
+
+    return max_odd
 
 def calculate_odds(routes, src, bounty_hunter_plan):
     """
