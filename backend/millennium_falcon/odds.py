@@ -118,7 +118,16 @@ def calculate(falcon_status, empire_plan):
     # Empire plan review
     count_down, bounty_hunter_plan = peep_empire_plan(empire_plan)
 
-    # TODO: Find the minimum path
+    # Find the shortest path
+    shortest_path = find_shortest_path(planets, \
+        falcon_status[DEPARTURE_KEY], falcon_status[ARRIVAL_KEY])
+    if len(shortest_path) == 0:
+        # Failed to find a valid path
+        return 1, odds
+    shortest_path_days = calculate_days(shortest_path, falcon_status[AUTONOMY_KEY])
+    print("Shortest path days:", shortest_path_days)
+    if shortest_path_days > count_down:
+        return 0, 0.0
 
     # TODO: Solve the minimum
 
