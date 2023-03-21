@@ -168,7 +168,8 @@ def find_shortest_path(planets, src_name, dst_name):
     current_queue = []  # Create a priority queue
     heapq.heappush(current_queue, PriorityPlanetWrapper(0, src))
 
-    # TODO: Retrieve the shortest path
+    # Retrieve the shortest path
+    precedents = { planet: None for _, planet in planets.items() }
     shortest_routes = [] # Chosen routes
 
     found_dest = False
@@ -199,10 +200,22 @@ def find_shortest_path(planets, src_name, dst_name):
                 heapq.heappush(current_queue,
                     PriorityPlanetWrapper(new_distance, current_reachable_planet)
                 )
+                # Build the precursor
+                precedents[current_reachable_planet] = current_planet
 
     if not found_dest:
         # No reachable path
         return shortest_routes
 
+    # Build the routes
+    current_planet = dst
+    while current_planet is not src and current_planet is not None:
+        previous_planet = precedents[current_planet]
+        if previous_planet is not None:
+            for route in previous_planet.routes:
+                if route.source == previous_planet and route.dest == current_planet:
+                    shortest_routes.insert(0, route)
+                    break
+        current_planet = previous_planet
     print("Shortest:", shortest_distances[dst])
     return shortest_routes
