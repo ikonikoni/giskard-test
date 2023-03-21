@@ -48,7 +48,6 @@ def retrieve_falcon_db_data(falcon_planet_db_fn):
     # Try to directly retrieve the data
     planets = dict()
     for route in conn.execute("select * from `ROUTES`"):
-        print(route)
         src = None
         dst = None
         cost = route[2]
@@ -127,7 +126,6 @@ def calculate(falcon_status, empire_plan):
         # Failed to find a valid path
         return 1, odds
     shortest_path_days = calculate_days(shortest_path, falcon_status[AUTONOMY_KEY])
-    print("Shortest path days:", shortest_path_days)
     if shortest_path_days > count_down:
         return 0, 0.0
     # Although calculate_days can handle with the autonomy,
@@ -255,7 +253,6 @@ def find_shortest_path(planets, src_name, dst_name):
                     shortest_routes.insert(0, route)
                     break
         current_planet = previous_planet
-    print("Shortest:", shortest_distances[dst])
     return shortest_routes
 
 class BruteForceTravelTreeNode:
