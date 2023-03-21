@@ -345,7 +345,7 @@ def brute_force_traversal(planets, src_name, dst_name, autonomy, count_down, bou
         )
         # Append the nodes if there are further steps
         for node in current_node.nodes:
-            current_queue.append(node)    
+            current_queue.append(node)
 
     return max_odd
 
@@ -361,11 +361,11 @@ def calculate_odds(routes, src, bounty_hunter_plan):
             days = days + 1
             if last_planet.name in bounty_hunter_plan.keys() and\
                 days in bounty_hunter_plan[last_planet.name]:
-                odds *= 0.9
+                odds *= COEFFICIENT
         else:
             days = days + route.cost
             last_planet = route.dest
             if last_planet.name in bounty_hunter_plan.keys() and\
                 days in bounty_hunter_plan[last_planet.name]:
-                odds *= 0.9
+                odds *= COEFFICIENT
     return odds
