@@ -33,4 +33,4 @@ class Route:
     
     @property
     def dest(self):
-        return self._dest
+        return self._dst

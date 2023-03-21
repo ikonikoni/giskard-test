@@ -60,14 +60,14 @@ def retrieve_falcon_db_data(falcon_planet_db_fn):
 
         if route[1] not in planets.keys():
             # Create a new planet
-            src = Planet(route[1])
-            planets.update({route[1]: src})
+            dst = Planet(route[1])
+            planets.update({route[1]: dst})
         else:
             dst = planets[route[1]]
         # Add to source planet
         src.establish_route(Route(src, dst, cost))
         # Add to destination planet
-        src.establish_route(Route(dst, src, cost))
+        dst.establish_route(Route(dst, src, cost))
 
     # Clean up
     conn.close()
