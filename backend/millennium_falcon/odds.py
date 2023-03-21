@@ -7,6 +7,12 @@ DEPARTURE_KEY = "departure"
 ARRIVAL_KEY = "arrival"
 ROUTE_DB_KEY = "routes_db"
 
+COUNTDOWN_KEY = "countdown"
+BOUNTY_HUNTERS_KEY = "bounty_hunters"
+
+PLANET_KEY = "planet"
+DAY_KEY = "day"
+
 def falcon_autocheck(falcon_status):
     """
         Check the key-values in falcon status:
@@ -68,6 +74,36 @@ def retrieve_falcon_db_data(falcon_planet_db_fn):
 
     return planets
 
+def peep_empire_plan(empire_plan):
+    """
+    {
+        "countdown": 6, 
+        "bounty_hunters": [
+            {"planet": "Tatooine", "day": 4 },
+            {"planet": "Dagobah", "day": 5 }
+        ]
+    }
+    """
+    count_down = 0
+    bounty_hunter_plan = dict()
+
+    if COUNTDOWN_KEY in empire_plan.keys():
+        count_down = empire_plan[COUNTDOWN_KEY]
+    if BOUNTY_HUNTERS_KEY in empire_plan.keys():
+        for plan in empire_plan[BOUNTY_HUNTERS_KEY]:
+            if PLANET_KEY not in plan.keys() or DAY_KEY not in plan.keys():
+                # Ignore if information is not complete
+                continue
+            if plan[PLANET_KEY] in bounty_hunter_plan.keys():
+                bounty_hunter_plan[plan[PLANET_KEY]].add(plan[DAY_KEY])
+            else:
+                days = set()
+                days.add(plan[DAY_KEY])
+                bounty_hunter_plan.update({ \
+                    plan[PLANET_KEY]: days \
+                })
+    return count_down, bounty_hunter_plan
+
 def calculate(falcon_status, empire_plan):
     error_code = 0
     odds = 0.0
@@ -79,6 +115,7 @@ def calculate(falcon_status, empire_plan):
     # Falcon data load
     planets = retrieve_falcon_db_data(falcon_status[ROUTE_DB_KEY])
 
-    # TODO: Empire plan review
+    # Empire plan review
+    count_down, bounty_hunter_plan = peep_empire_plan(empire_plan)
 
     return error_code, odds
