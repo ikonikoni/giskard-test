@@ -7,6 +7,14 @@ class Planet:
     
     def establish_route(self, route):
         self._routes.add(route)
+    
+    @property
+    def routes(self):
+        return self._routes
+    
+    @property
+    def name(self):
+        return self._name
 
 class Route:
     # Edge
@@ -14,3 +22,15 @@ class Route:
         self._src = src
         self._dst = dst
         self._cost = cost
+    
+    @property
+    def cost(self):
+        return self._cost
+    
+    @property
+    def source(self):
+        return self._src
+    
+    @property
+    def dest(self):
+        return self._dest

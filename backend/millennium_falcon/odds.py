@@ -118,4 +118,29 @@ def calculate(falcon_status, empire_plan):
     # Empire plan review
     count_down, bounty_hunter_plan = peep_empire_plan(empire_plan)
 
+    # TODO: Find the minimum path
+
+    # TODO: Solve the minimum
+
     return error_code, odds
+
+def calculate_days(routes, autonomy):
+    """
+    Routes is a list containing the routes, None represents staying at the current
+    """
+    days = 0
+    current_autonomy = autonomy
+    for route in routes:
+        if route is None:
+            days = days + 1
+            current_autonomy = autonomy
+        else:
+            if route.cost > autonomy:
+                raise Exception("Cost larger than autonomy")
+            if route.cost > current_autonomy:
+                days = days + 1 + route.cost
+                current_autonomy = autonomy - route.cost
+            else:
+                days = days + route.cost
+                current_autonomy = current_autonomy - route.cost
+    return days
