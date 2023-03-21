@@ -1,0 +1,3 @@
+[submodule "backend/developer-test"]
+	path = backend/developer-test
+	url = https://github.com/lioncowlionant/developer-test.git
