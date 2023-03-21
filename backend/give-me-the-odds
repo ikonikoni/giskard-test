@@ -3,12 +3,28 @@
 import sys
 import json
 
+import millennium_falcon.odds
+
 def print_help():
-    pass
+    print("Usage:                                                           ")
+    print("    ./give-me-the-odds <millennium-falcon.json> <empire.json>    ")
+    print("Remember to make sure that your database is along with the script")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print_help()
         exit(1)
 
-    # TODO: Call the core module to calculate the odds
+    # Call the core module to calculate the odds
+    try:
+        with open(sys.argv[1], "r") as falcon_status_fd:
+            with open(sys.argv[2], "r") as empire_plan_fd:
+                error_code, odds = millennium_falcon.\
+                    odds.calculate(json.load(falcon_status_fd), json.load(empire_plan_fd))
+                if error_code != 0:
+                    print("Error:", error_code)
+                    exit(1)
+                print(int(odds))
+    except Exception as e:
+        print("Exception:", e)
+        exit(1)
