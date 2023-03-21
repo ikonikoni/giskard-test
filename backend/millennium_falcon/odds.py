@@ -133,6 +133,11 @@ def calculate(falcon_status, empire_plan):
     shortest_path = fixup_days(shortest_path, falcon_status[AUTONOMY_KEY])
 
     # TODO: Solve the minimum
+    solutions = [ shortest_path ]
+    if shortest_path_days == count_down:
+        # Maybe cannot improve anymore
+        return 0, calculate_odds(shortest_path, \
+            planets[falcon_status[DEPARTURE_KEY]], bounty_hunter_plan)
 
     return error_code, odds
 
@@ -247,3 +252,24 @@ def find_shortest_path(planets, src_name, dst_name):
         current_planet = previous_planet
     print("Shortest:", shortest_distances[dst])
     return shortest_routes
+
+def calculate_odds(routes, src, bounty_hunter_plan):
+    """
+    Assume that the routes have been already fixed
+    """
+    odds = 100.0
+    days = 0
+    last_planet = src
+    for route in routes:
+        if route is None:
+            days = days + 1
+            if last_planet.name in bounty_hunter_plan.keys() and\
+                days in bounty_hunter_plan[last_planet.name]:
+                odds *= 0.9
+        else:
+            days = days + route.cost
+            last_planet = route.dest
+            if last_planet.name in bounty_hunter_plan.keys() and\
+                days in bounty_hunter_plan[last_planet.name]:
+                odds *= 0.9
+    return odds
