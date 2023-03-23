@@ -12,6 +12,17 @@ const result_id = ref(-1) // Get the result id from Celery
 const last_error = ref("")
 const odd = ref(0)
 
+function reinit() {
+  step.value = 0
+  file.value = null
+  last_error.value = ""
+}
+
+function cancelCurrentOperation() {
+  reinit()
+  last_error.value = "You have cancelled the last operation"
+}
+
 // Retrieve the file object for later loading
 function handleFileChange(e) {
   file.value = e.target.files[0]
@@ -32,16 +43,16 @@ function queryMinOdd(id) {
           // Continue
           break
         case 2:
+          reinit()
           last_error.value = "Cannot submit the empire plan, please retry"
-          step.value = 0
           break
         default:
           break
       }
     })
     .catch((error) => {
+      reinit()
       last_error.value = "Cannot submit the empire plan, please retry"
-      step.value = 0
     })
 }
 
@@ -54,8 +65,7 @@ function keepQueryMinOdd(id) {
 function onEmpirePlanSubmit(res) {
   if (res.error !== 0) {
     // Clean up
-    step.value = 0
-    file.value = null
+    reinit()
     last_error.value = "Cannot resolve the empire plan, please retry"
     return
   }
@@ -107,15 +117,13 @@ function submitEmpirePlan() {
         .then(onEmpirePlanSubmit)
         .catch((error) => {
           // Clean up
-          step.value = 0
-          file.value = null
+          reinit()
           console.log(error)
           last_error.value = "Cannot submit the empire plan, please retry"
         })
       } catch (error) {
         // Clean up
-        step.value = 0
-        file.value = null
+        reinit()
         last_error.value = "Cannot decode the empire plan, select another one"
         return
       }
@@ -125,7 +133,7 @@ function submitEmpirePlan() {
     }.bind(this)
     reader.readAsText(file.value)
   } else {
-    step.value = 0
+    reinit()
     last_error.value = "Please select a file containing the empire plan"
   }
 }
@@ -150,6 +158,8 @@ function submitEmpirePlan() {
     <p v-if="step===2">Finding the shortest path</p>
     <p v-if="step===3">Finding the less risky path</p>
     <p v-if="step===4">Odd: {{ odd }}</p>
+    <button v-if="step > 0" type="button" @click="cancelCurrentOperation">Cancel</button>
+    <button v-if="step===4" type="button" @click="reinit">Retry</button>
   </div>
 </template>
 
