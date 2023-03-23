@@ -10,6 +10,8 @@ services:
     # flask requires SIGINT to stop gracefully
     # (default stop signal from Compose is SIGTERM)
     stop_signal: SIGINT
+    env_file:
+      - backend.env
     ports:
       - '5000:5000'
     depends_on:
