@@ -6,6 +6,9 @@ import json
 
 from millennium_falcon import odds
 
+from celery.result import AsyncResult
+import task
+
 # Load millennium falcon status
 def print_help():
     print("Usage:                                                           ")
@@ -29,7 +32,7 @@ def empire_plan_uploader():
     """
     Only accept JSON file in a POST request
     """
-    r = { "error": 0, "id": -1, "max_odd": 0, "min_day": 0 }
+    r = { "error": 0, "id": None, "max_odd": 0, "min_day": 0 }
 
     # Load the empire plan
     count_down, bounty_hunter_plan = \
@@ -48,12 +51,29 @@ def empire_plan_uploader():
         # Cannot arrive in time
         r.update({ "max_odd": 0, "min_day": 0 })
     else:
-        # TODO: Launch the background task
-        r.update({ "max_odd": 0, "min_day": shortest_path_days })
+        # Launch the background task
+        task_result = task.calculate_odds.\
+            delay([], falcon_status, count_down, bounty_hunter_plan)
+        r.update({\
+            "id": task_result.id,\
+            "min_day": shortest_path_days\
+        })
 
     return r
 
-# TODO: Add other endpoints
+@app.route('/api/retrieve-max-odd')
+def retrieve_max_odd():
+    if "id" not in request.args.keys():
+        return { "error": 2, "odd": 0 }
+    # Get the task id
+    task_id = request.args["id"]
+
+    # Construct the result
+    res = AsyncResult(task_id, backend=task.app.backend)
+
+    if res.ready():
+        return { "error": 0, "odd": res.get() }
+    return { "error": 1, "odd": 0 }
 
 # run the application
 if __name__ == "__main__":
