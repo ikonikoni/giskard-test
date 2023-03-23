@@ -2,4 +2,4 @@
 
 cd backend
 
-python app.py $1
+celery -A task worker
