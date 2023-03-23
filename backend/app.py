@@ -29,8 +29,27 @@ def empire_plan_uploader():
     """
     Only accept JSON file in a POST request
     """
-    r = { "error": 0, "id": -1, "min_odd": 0, "min_day": 0 }
-    # TODO: Calculate the shortest
+    r = { "error": 0, "id": -1, "max_odd": 0, "min_day": 0 }
+
+    # Load the empire plan
+    count_down, bounty_hunter_plan = \
+        odds.peep_empire_plan(request.json)
+
+    # Find the shortest path
+    shortest_path = odds.find_shortest_path(planets, \
+        falcon_status[odds.DEPARTURE_KEY], falcon_status[odds.ARRIVAL_KEY])
+    if len(shortest_path) == 0:
+        # Failed to find a valid path
+        r.update({ "max_odd": 0, "min_day": 0 })
+        return r
+    shortest_path_days = odds.calculate_days(shortest_path,\
+        falcon_status[odds.AUTONOMY_KEY])
+    if shortest_path_days > count_down:
+        # Cannot arrive in time
+        r.update({ "max_odd": 0, "min_day": 0 })
+    else:
+        # TODO: Launch the background task
+        r.update({ "max_odd": 0, "min_day": shortest_path_days })
 
     return r
 
