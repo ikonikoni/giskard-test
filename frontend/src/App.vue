@@ -5,7 +5,7 @@ const file = ref(null)  // The file ref
 const step = ref(0)     // Divide into several steps
 // 0: Submit file
 // 1: Uploading
-// 2: Found shortest
+// 2: Finding shortest
 // 3: Waiting for best
 // 4: Got odd
 const result_id = ref(-1) // Get the result id from Celery
@@ -14,6 +14,25 @@ const last_error = ref("")
 // Retrieve the file object for later loading
 function handleFileChange(e) {
   file.value = e.target.files[0]
+}
+
+function onEmpirePlanSubmit(res) {
+  if (res.error !== 0) {
+    // Clean up
+    step.value = 0
+    file.value = null
+    last_error.value = "Cannot resolve the empire plan, please retry"
+    return
+  }
+  // Shortest found
+  if (res.min_day === 0) {
+    // That is not possible
+    step.value = 4
+    // odd.value = 0
+    return
+  }
+  step.value = 3
+  // TODO: Poll the min odd API endpoint
 }
 
 // TODO: Load and submit the plan to endpoint
@@ -39,8 +58,24 @@ function submitEmpirePlan() {
           throw new Error()
         }
 
-        console.log(empire_plan_json)
-        // TODO: Send to API endpoint
+        step.value = 2
+        // Send to API endpoint
+        fetch("/api/empire-plan-uploader", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: res.target.result
+        })
+        .then((response) => response.json())
+        .then(onEmpirePlanSubmit)
+        .catch((error) => {
+          // Clean up
+          step.value = 0
+          file.value = null
+          console.log(error)
+          last_error.value = "Cannot submit the empire plan, please retry"
+        })
       } catch (error) {
         // Clean up
         step.value = 0
