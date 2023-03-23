@@ -10,10 +10,45 @@ const step = ref(0)     // Divide into several steps
 // 4: Got odd
 const result_id = ref(-1) // Get the result id from Celery
 const last_error = ref("")
+const odd = ref(0)
 
 // Retrieve the file object for later loading
 function handleFileChange(e) {
   file.value = e.target.files[0]
+}
+
+// Consult celery on the result
+function queryMinOdd(id) {
+  fetch("/api/retrieve-max-odd?id=" + id)
+    .then((response) => response.json())
+    .then((res) => {
+      console.log(res)
+      switch (res.error) {
+        case 0:
+          odd.value = res.odd
+          step.value = 4
+          break
+        case 1:
+          // Continue
+          break
+        case 2:
+          last_error.value = "Cannot submit the empire plan, please retry"
+          step.value = 0
+          break
+        default:
+          break
+      }
+    })
+    .catch((error) => {
+      last_error.value = "Cannot submit the empire plan, please retry"
+      step.value = 0
+    })
+}
+
+function keepQueryMinOdd(id) {
+  queryMinOdd(id)
+  if (step.value == 3)
+    setTimeout(keepQueryMinOdd, 500, id)
 }
 
 function onEmpirePlanSubmit(res) {
@@ -28,14 +63,15 @@ function onEmpirePlanSubmit(res) {
   if (res.min_day === 0) {
     // That is not possible
     step.value = 4
-    // odd.value = 0
+    odd.value = 0
     return
   }
   step.value = 3
-  // TODO: Poll the min odd API endpoint
+  // Poll the min odd API endpoint
+  setTimeout(keepQueryMinOdd, 500, res.id)
 }
 
-// TODO: Load and submit the plan to endpoint
+// Load and submit the plan to endpoint
 function submitEmpirePlan() {
   // Check file and send to the API endpoint
   if (file.value != null) {
@@ -92,18 +128,6 @@ function submitEmpirePlan() {
     step.value = 0
     last_error.value = "Please select a file containing the empire plan"
   }
-  // step.value = 2
-
-  // TODO: When getting the id of Celery task
-  // step.value = 3
-}
-
-// TODO: Consult celery on the result
-function retrieve_min_ood() {
-
-  // TODO: On retrieve result
-  step.value = 4
-  odd.value = 100
 }
 </script>
 
