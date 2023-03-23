@@ -41,13 +41,9 @@ def falcon_autocheck(falcon_status):
 
     return True
 
-def retrieve_falcon_db_data(falcon_planet_db_fn):
-    # Assume the db exists
-    conn = sqlite3.connect(falcon_planet_db_fn)
-
-    # Try to directly retrieve the data
+def construct_planets_routes(results):
     planets = dict()
-    for route in conn.execute("select * from `ROUTES`"):
+    for route in results:
         src = None
         dst = None
         cost = route[2]
@@ -69,9 +65,23 @@ def retrieve_falcon_db_data(falcon_planet_db_fn):
         src.establish_route(Route(src, dst, cost))
         # Add to destination planet
         dst.establish_route(Route(dst, src, cost))
+    return planets
+
+def retrieve_falcon_db_raw_data(falcon_planet_db_fn):
+    # Assume the db exists
+    conn = sqlite3.connect(falcon_planet_db_fn)
+    data = conn.execute("select * from `ROUTES`").fetchall()
 
     # Clean up
     conn.close()
+
+    return data
+
+def retrieve_falcon_db_data(falcon_planet_db_fn):
+    # Try to directly retrieve the data
+    planets = construct_planets_routes(
+        retrieve_falcon_db_raw_data(falcon_planet_db_fn)
+    )
 
     return planets
 
@@ -96,10 +106,10 @@ def peep_empire_plan(empire_plan):
                 # Ignore if information is not complete
                 continue
             if plan[PLANET_KEY] in bounty_hunter_plan.keys():
-                bounty_hunter_plan[plan[PLANET_KEY]].add(plan[DAY_KEY])
+                bounty_hunter_plan[plan[PLANET_KEY]].append(plan[DAY_KEY])
             else:
-                days = set()
-                days.add(plan[DAY_KEY])
+                days = list()
+                days.append(plan[DAY_KEY])
                 bounty_hunter_plan.update({ \
                     plan[PLANET_KEY]: days \
                 })
