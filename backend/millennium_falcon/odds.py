@@ -115,7 +115,9 @@ def peep_empire_plan(empire_plan):
                 })
     return count_down, bounty_hunter_plan
 
-def calculate(falcon_status, empire_plan):
+import os
+
+def calculate(falcon_status, empire_plan, base_dir=""):
     error_code = 0
     odds = 0.0
 
@@ -124,7 +126,7 @@ def calculate(falcon_status, empire_plan):
         return 1, odds
 
     # Falcon data load
-    planets = retrieve_falcon_db_data(falcon_status[ROUTE_DB_KEY])
+    planets = retrieve_falcon_db_data(os.path.join(base_dir, falcon_status[ROUTE_DB_KEY]))
 
     # Empire plan review
     count_down, bounty_hunter_plan = peep_empire_plan(empire_plan)

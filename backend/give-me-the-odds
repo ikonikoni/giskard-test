@@ -2,13 +2,13 @@
 
 import sys
 import json
+import os
 
 import millennium_falcon.odds
 
 def print_help():
     print("Usage:                                                           ")
     print("    ./give-me-the-odds <millennium-falcon.json> <empire.json>    ")
-    print("Remember to make sure that your database is along with the script")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -20,7 +20,8 @@ if __name__ == "__main__":
         with open(sys.argv[1], "r") as falcon_status_fd:
             with open(sys.argv[2], "r") as empire_plan_fd:
                 error_code, odds = millennium_falcon.\
-                    odds.calculate(json.load(falcon_status_fd), json.load(empire_plan_fd))
+                    odds.calculate(json.load(falcon_status_fd), json.load(empire_plan_fd), \
+                        base_dir=os.path.dirname(sys.argv[1]))
                 if error_code != 0:
                     print("Error:", error_code)
                     exit(1)
