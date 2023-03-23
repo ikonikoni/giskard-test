@@ -11,22 +11,56 @@ const step = ref(0)     // Divide into several steps
 const result_id = ref(-1) // Get the result id from Celery
 const last_error = ref("")
 
-// Retrieve the file object for loading
+// Retrieve the file object for later loading
 function handleFileChange(e) {
-  file = e.target.files[0]
-  console.log(file)
-  // console.log(this.$emit('input', e.target.files[0]))
+  file.value = e.target.files[0]
 }
 
 // TODO: Load and submit the plan to endpoint
 function submitEmpirePlan() {
-  // TODO: Check and send
-  step.value = 1
-  console.log(step.value)
-  step.value = 2
+  // Check file and send to the API endpoint
+  if (file.value != null) {
+    step.value = 1
+
+    // Read file
+    const reader = new FileReader();
+    reader.onload = function(res) {
+      // Parse as json
+      try {
+        console.log(res.target.result)
+        const empire_plan_json = JSON.parse(res.target.result)
+
+        // Check countdown
+        if (empire_plan_json.countdown === undefined) {
+          throw new Error()
+        }
+        // Check bounty_hunter_plan
+        if (empire_plan_json.bounty_hunters === undefined) {
+          throw new Error()
+        }
+
+        console.log(empire_plan_json)
+        // TODO: Send to API endpoint
+      } catch (error) {
+        // Clean up
+        step.value = 0
+        file.value = null
+        last_error.value = "Cannot decode the empire plan, select another one"
+        return
+      }
+    }.bind(this)
+    reader.onerror = function(err) {
+      last_error.value = "Cannot read the file, select another one"
+    }.bind(this)
+    reader.readAsText(file.value)
+  } else {
+    step.value = 0
+    last_error.value = "Please select a file containing the empire plan"
+  }
+  // step.value = 2
 
   // TODO: When getting the id of Celery task
-  step.value = 3
+  // step.value = 3
 }
 
 // TODO: Consult celery on the result
