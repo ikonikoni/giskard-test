@@ -83,6 +83,9 @@ function onEmpirePlanSubmit(res) {
 
 // Load and submit the plan to endpoint
 function submitEmpirePlan() {
+  // Clear error msg
+  last_error.value = ""
+
   // Check file and send to the API endpoint
   if (file.value != null) {
     step.value = 1
@@ -158,7 +161,7 @@ function submitEmpirePlan() {
     <p v-if="step===2">Finding the shortest path</p>
     <p v-if="step===3">Finding the less risky path</p>
     <p v-if="step===4">Odd: {{ odd }}</p>
-    <button v-if="step > 0" type="button" @click="cancelCurrentOperation">Cancel</button>
+    <button v-if="step > 0 && step < 4" type="button" @click="cancelCurrentOperation">Cancel</button>
     <button v-if="step===4" type="button" @click="reinit">Retry</button>
   </div>
 </template>
