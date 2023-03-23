@@ -33,7 +33,6 @@ function queryMinOdd(id) {
   fetch("/api/retrieve-max-odd?id=" + id)
     .then((response) => response.json())
     .then((res) => {
-      console.log(res)
       switch (res.error) {
         case 0:
           odd.value = res.odd
@@ -95,7 +94,6 @@ function submitEmpirePlan() {
     reader.onload = function(res) {
       // Parse as json
       try {
-        console.log(res.target.result)
         const empire_plan_json = JSON.parse(res.target.result)
 
         // Check countdown
@@ -121,7 +119,6 @@ function submitEmpirePlan() {
         .catch((error) => {
           // Clean up
           reinit()
-          console.log(error)
           last_error.value = "Cannot submit the empire plan, please retry"
         })
       } catch (error) {
