@@ -160,6 +160,8 @@ function submitEmpirePlan() {
     <p v-if="step===1">Loading plan</p>
     <p v-if="step===2">Finding the shortest path</p>
     <p v-if="step===3">Finding the less risky path</p>
+    <p v-if="step===4 && odd > 0">You can make it!</p>
+    <p v-if="step===4 && odd == 0">You can not beat the Death Star...</p>
     <p v-if="step===4">Odd: {{ odd }}</p>
     <button v-if="step > 0 && step < 4" type="button" @click="cancelCurrentOperation">Cancel</button>
     <button v-if="step===4" type="button" @click="reinit">Retry</button>
