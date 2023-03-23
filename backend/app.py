@@ -16,6 +16,7 @@ def print_help():
 
 global falcon_status
 global planets
+global db_raw_data
 
 app = Flask(__name__, template_folder=os.path.abspath('.'))
 
@@ -53,7 +54,7 @@ def empire_plan_uploader():
     else:
         # Launch the background task
         task_result = task.calculate_odds.\
-            delay([], falcon_status, count_down, bounty_hunter_plan)
+            delay(db_raw_data, falcon_status, count_down, bounty_hunter_plan)
         r.update({\
             "id": task_result.id,\
             "min_day": shortest_path_days\
@@ -93,6 +94,8 @@ if __name__ == "__main__":
                 falcon_status[odds.ROUTE_DB_KEY])
             # Falcon data load
             planets = odds.retrieve_falcon_db_data(db_path)
+            db_raw_data = odds.\
+                retrieve_falcon_db_raw_data(db_path)
     except Exception as e:
         print("Exception:", e)
         exit(1)
